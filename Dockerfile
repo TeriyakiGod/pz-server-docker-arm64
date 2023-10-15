@@ -88,4 +88,25 @@ WORKDIR /home/steam/Steam
 # Download and run SteamCMD
 RUN curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 
-ENTRYPOINT FEXBash ./steamcmd.sh
+ENV PATH="/home/steam/Steam:$PATH"
+
+WORKDIR /home/steam/pzserver
+
+RUN echo "\
+// update_zomboid.txt \n \
+// \n \
+@ShutdownOnFailedCommand 1 //set to 0 if updating multiple servers at once \n \
+@NoPromptForPassword 1 \n \
+force_install_dir /home/steam/pzserver/ \n \
+//for servers which don't need a login \n \
+login anonymous \n \
+app_update 380870 validate \n \
+exit" > update_zomboid.txt
+
+RUN FEXBash "steamcmd.sh +runscript /home/steam/pzserver/update_zomboid.txt"
+
+RUN rm ProjectZomboid64.json
+
+COPY ProjectZomboid64.json /home/steam/pzserver/
+
+ENTRYPOINT /bin/bash
